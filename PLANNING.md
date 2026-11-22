@@ -33,6 +33,8 @@ A role-based web app where **students** register, form a group, add members, see
 
 ## 3. Folder structure
 
+**Code conventions:** ES modules everywhere (`import` / `export`, no `require`), `async/await`, arrow functions, small single-purpose functions, named exports. Backend request flow: **route → middleware (auth, validate) → controller → model → database**.
+
 ```
 joineazy_ass/
 ├── backend/
@@ -51,21 +53,29 @@ joineazy_ass/
 │   │   │   ├── validate.js         # zod request validation
 │   │   │   ├── errorHandler.js
 │   │   │   └── notFound.js
-│   │   ├── modules/                # feature-based: routes → controller → service
-│   │   │   ├── auth/
-│   │   │   │   ├── auth.routes.js
-│   │   │   │   ├── auth.controller.js
-│   │   │   │   ├── auth.service.js
-│   │   │   │   └── auth.schema.js
-│   │   │   ├── groups/             # same 4-file pattern
-│   │   │   ├── assignments/
-│   │   │   ├── submissions/
-│   │   │   └── analytics/
+│   │   ├── routes/                 # URL → middleware → controller
+│   │   │   ├── index.js            # mounts all routers under /api
+│   │   │   ├── auth.routes.js
+│   │   │   ├── group.routes.js
+│   │   │   ├── assignment.routes.js
+│   │   │   ├── submission.routes.js
+│   │   │   └── analytics.routes.js
+│   │   ├── controllers/            # handle request/response + business rules
+│   │   │   ├── auth.controller.js
+│   │   │   ├── group.controller.js
+│   │   │   ├── assignment.controller.js
+│   │   │   ├── submission.controller.js
+│   │   │   └── analytics.controller.js
+│   │   ├── models/                 # all SQL lives here, one file per table/entity
+│   │   │   ├── user.model.js
+│   │   │   ├── group.model.js
+│   │   │   ├── assignment.model.js
+│   │   │   └── submission.model.js
+│   │   ├── validators/             # zod schemas (auth.validator.js, group.validator.js, ...)
 │   │   ├── utils/
 │   │   │   ├── ApiError.js
 │   │   │   ├── asyncHandler.js
 │   │   │   └── jwt.js
-│   │   ├── routes.js               # mounts all module routers under /api
 │   │   ├── app.js                  # express app (cors, helmet, json, routes, errors)
 │   │   └── server.js               # starts the server
 │   ├── .env.example
@@ -255,7 +265,7 @@ Time available: ~38 hours. Budget below leaves a buffer for deployment and the d
 - **Commit:** `feat(backend): express setup, db connection and schema`
 
 ### Phase 2 — Authentication & RBAC (≈2.5 h)
-- [ ] `auth` module: register (students only), login, me
+- [ ] `user.model.js`, `auth.controller.js`, `auth.routes.js`, `auth.validator.js`: register (students only), login, me
 - [ ] Password hashing (bcrypt, 10 rounds), JWT sign/verify utils
 - [ ] `authenticate` + `authorize(...roles)` middleware
 - [ ] `seed.js`: 1 admin, ~8 students, 2–3 groups, 3–4 assignments

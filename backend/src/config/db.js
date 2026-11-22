@@ -1,31 +1,29 @@
-const { Pool } = require('pg');
-const { databaseUrl } = require('./env');
+import pg from 'pg';
+import { env } from './env.js';
 
-// Supabase requires SSL; its certificate chain is not in Node's default store.
-const pool = new Pool({
-  connectionString: databaseUrl,
+// Supabase requires SSL, and its certificate chain isn't in Node's default store.
+export const pool = new pg.Pool({
+  connectionString: env.databaseUrl,
   ssl: { rejectUnauthorized: false },
   max: 10,
 });
 
 pool.on('error', (err) => console.error('Unexpected PG pool error:', err.message));
 
-const query = (text, params) => pool.query(text, params);
+export const query = (text, params) => pool.query(text, params);
 
-// Runs fn(client) inside a transaction; rolls back on any error.
-async function withTransaction(fn) {
+// Runs `callback(client)` inside a transaction and rolls back if it throws.
+export const withTransaction = async (callback) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const result = await fn(client);
+    const result = await callback(client);
     await client.query('COMMIT');
     return result;
-  } catch (err) {
+  } catch (error) {
     await client.query('ROLLBACK');
-    throw err;
+    throw error;
   } finally {
     client.release();
   }
-}
-
-module.exports = { pool, query, withTransaction };
+};

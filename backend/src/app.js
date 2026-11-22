@@ -1,21 +1,21 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const { clientUrl, isProd } = require('./config/env');
-const routes = require('./routes');
-const notFound = require('./middleware/notFound');
-const errorHandler = require('./middleware/errorHandler');
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { env } from './config/env.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { notFound } from './middleware/notFound.js';
+import routes from './routes/index.js';
 
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: clientUrl }));
+app.use(cors({ origin: env.clientUrl }));
 app.use(express.json());
-if (!isProd) app.use(morgan('dev'));
+if (!env.isProd) app.use(morgan('dev'));
 
 app.use('/api', routes);
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

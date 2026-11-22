@@ -1,12 +1,18 @@
-const ApiError = require('../utils/ApiError');
+import { ApiError } from '../utils/ApiError.js';
 
-// validate(schema, 'body' | 'query' | 'params') — replaces the source with parsed data.
-module.exports = (schema, source = 'body') => (req, _res, next) => {
+// Usage: validate(schema) or validate(schema, 'query' | 'params').
+// Replaces the request data with the parsed (cleaned) result.
+export const validate = (schema, source = 'body') => (req, _res, next) => {
   const result = schema.safeParse(req[source]);
+
   if (!result.success) {
-    const errors = result.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message }));
+    const errors = result.error.issues.map(({ path, message }) => ({
+      field: path.join('.'),
+      message,
+    }));
     return next(ApiError.badRequest('Validation failed', errors));
   }
+
   req[source] = result.data;
   next();
 };

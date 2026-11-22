@@ -1,15 +1,13 @@
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(status, message, errors) {
     super(message);
     this.status = status;
     this.errors = errors;
   }
 
-  static badRequest(msg = 'Bad request', errors) { return new ApiError(400, msg, errors); }
-  static unauthorized(msg = 'Unauthorized') { return new ApiError(401, msg); }
-  static forbidden(msg = 'Forbidden') { return new ApiError(403, msg); }
-  static notFound(msg = 'Not found') { return new ApiError(404, msg); }
-  static conflict(msg = 'Conflict') { return new ApiError(409, msg); }
+  static badRequest = (message = 'Bad request', errors) => new ApiError(400, message, errors);
+  static unauthorized = (message = 'Unauthorized') => new ApiError(401, message);
+  static forbidden = (message = 'Forbidden') => new ApiError(403, message);
+  static notFound = (message = 'Not found') => new ApiError(404, message);
+  static conflict = (message = 'Conflict') => new ApiError(409, message);
 }
-
-module.exports = ApiError;
