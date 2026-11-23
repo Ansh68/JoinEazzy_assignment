@@ -1,10 +1,9 @@
 import { Router } from 'express';
+import authRoutes from './auth.routes.js';
 
 const router = Router();
 
 router.get('/health', (_req, res) => res.json({ success: true, status: 'ok' }));
-
-// Feature routes get mounted here as they're built:
-// router.use('/auth', authRoutes);
+router.use('/auth', authRoutes);
 
 export default router;
