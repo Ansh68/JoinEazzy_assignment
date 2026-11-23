@@ -1,14 +1,9 @@
 {
   "name": "joineazy-backend",
   "version": "1.0.0",
-  "description": "Student, Group & Assignment Management API",
   "main": "src/server.js",
-  "type": "module",
-  "license": "ISC",
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node database/seed.js",
@@ -16,6 +11,11 @@
     "migrate:down": "node-pg-migrate down --envPath .env -m database/migrations",
     "migrate:create": "node-pg-migrate create --envPath .env -m database/migrations -j js"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Student, Group & Assignment Management API",
+  "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
     "bcrypt": "^6.0.0",
