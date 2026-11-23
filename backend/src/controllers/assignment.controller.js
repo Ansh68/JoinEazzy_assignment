@@ -30,13 +30,15 @@ const getStudentContext = async (userId) => {
 };
 
 export const listAssignments = asyncHandler(async (req, res) => {
-  const assignments = await Assignment.findAll();
-
   if (req.user.role === 'admin') {
-    return res.json({ success: true, assignments });
+    return res.json({ success: true, assignments: await Assignment.findAll() });
   }
 
-  const { group, submissions } = await getStudentContext(req.user.id);
+  // The assignment list and the student's group don't depend on each other, so fetch them together.
+  const [assignments, { group, submissions }] = await Promise.all([
+    Assignment.findAll(),
+    getStudentContext(req.user.id),
+  ]);
   const submissionByAssignment = new Map(submissions.map((s) => [s.assignmentId, s]));
 
   const visible = assignments
@@ -47,14 +49,19 @@ export const listAssignments = asyncHandler(async (req, res) => {
 });
 
 export const getAssignment = asyncHandler(async (req, res) => {
-  const assignment = await Assignment.findById(req.params.id);
+  const isAdmin = req.user.role === 'admin';
+
+  const [assignment, studentContext] = await Promise.all([
+    Assignment.findById(req.params.id),
+    isAdmin ? null : getStudentContext(req.user.id),
+  ]);
   if (!assignment) throw ApiError.notFound('Assignment not found');
 
-  if (req.user.role === 'admin') {
+  if (isAdmin) {
     return res.json({ success: true, assignment });
   }
 
-  const { group, submissions } = await getStudentContext(req.user.id);
+  const { group, submissions } = studentContext;
   // Same response as a missing assignment, so students can't discover ones meant for other groups.
   if (!isVisibleToGroup(assignment, group?.id)) throw ApiError.notFound('Assignment not found');
 

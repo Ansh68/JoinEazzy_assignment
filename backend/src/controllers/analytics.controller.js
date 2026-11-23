@@ -58,7 +58,7 @@ export const getGroupAnalytics = asyncHandler(async (_req, res) => {
 
 // A student's own group progress, for the student dashboard.
 export const getMyProgress = asyncHandler(async (req, res) => {
-  const group = await Group.findByMemberId(req.user.id);
+  const [group, assignments] = await Promise.all([Group.findByMemberId(req.user.id), Assignment.findAll()]);
   if (!group) {
     return res.json({
       success: true,
@@ -66,10 +66,7 @@ export const getMyProgress = asyncHandler(async (req, res) => {
     });
   }
 
-  const [assignments, submissions] = await Promise.all([
-    Assignment.findAll(),
-    Submission.findByGroupId(group.id),
-  ]);
+  const submissions = await Submission.findByGroupId(group.id);
   const submissionByAssignment = new Map(submissions.map((s) => [s.assignmentId, s]));
 
   const statuses = assignments

@@ -19,7 +19,7 @@ const loadDashboard = async () => {
 
 export function AdminDashboard() {
   const { user } = useAuth();
-  const { data, loading, error, reload } = useFetch(loadDashboard);
+  const { data, loading, error, reload } = useFetch(loadDashboard, 'admin-dashboard');
 
   const header = <PageHeader title={`Welcome, ${user.name}`} description="Submission progress across all groups." />;
 

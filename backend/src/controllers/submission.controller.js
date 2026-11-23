@@ -11,10 +11,12 @@ import { getStatus, getTargetedGroupIds, isVisibleToGroup, toPercent } from '../
 export const confirmSubmission = asyncHandler(async (req, res) => {
   const { id: assignmentId } = req.params;
 
-  const group = await Group.findByMemberId(req.user.id);
+  const [group, assignment] = await Promise.all([
+    Group.findByMemberId(req.user.id),
+    Assignment.findById(assignmentId),
+  ]);
   if (!group) throw ApiError.badRequest('Create or join a group before confirming a submission');
 
-  const assignment = await Assignment.findById(assignmentId);
   if (!assignment || !isVisibleToGroup(assignment, group.id)) {
     throw ApiError.notFound('Assignment not found');
   }

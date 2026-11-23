@@ -46,12 +46,20 @@ export const findByName = async (name) =>
       .maybeSingle(),
   );
 
-// Returns the group the user belongs to (with members), or null.
+// Returns the group the user belongs to (with members), or null. One request: the inner join on a
+// second alias of group_members keeps only groups the user is in, without trimming `members`.
 export const findByMemberId = async (userId) => {
-  const membership = unwrap(
-    await supabase.from('group_members').select('groupId:group_id').eq('user_id', userId).maybeSingle(),
+  const group = unwrap(
+    await supabase
+      .from('groups')
+      .select(`${GROUP_WITH_MEMBERS}, membership:group_members!inner ( user_id )`)
+      .eq('membership.user_id', userId)
+      .maybeSingle(),
   );
-  return membership ? findById(membership.groupId) : null;
+  if (!group) return null;
+
+  const { membership, ...groupWithMembers } = group;
+  return toGroup(groupWithMembers);
 };
 
 export const addMember = async ({ groupId, userId, role = 'member' }) =>

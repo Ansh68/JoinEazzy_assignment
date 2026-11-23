@@ -19,7 +19,7 @@ const loadDashboard = async () => {
 
 export function StudentDashboard() {
   const { user } = useAuth();
-  const { data, loading, error, reload } = useFetch(loadDashboard);
+  const { data, loading, error, reload } = useFetch(loadDashboard, 'student-dashboard');
 
   const header = <PageHeader title={`Hi, ${user.name.split(' ')[0]}`} description="Your group's progress and upcoming deadlines." />;
 

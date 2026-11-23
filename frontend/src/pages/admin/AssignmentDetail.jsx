@@ -37,7 +37,7 @@ function Table({ columns, children }) {
 export function AssignmentDetail() {
   const { id } = useParams();
   const loadSubmissions = useCallback(() => getAssignmentSubmissions(id), [id]);
-  const { data, loading, error, reload } = useFetch(loadSubmissions);
+  const { data, loading, error, reload } = useFetch(loadSubmissions, `assignment-tracking-${id}`);
   const [tab, setTab] = useState('groups');
 
   const backLink = (

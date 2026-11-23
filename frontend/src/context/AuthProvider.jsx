@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { getCurrentUser, loginRequest, registerRequest } from '../api/auth.api';
+import { clearFetchCache } from '../hooks/useFetch';
 import { TOKEN_KEY, UNAUTHORIZED_EVENT } from '../utils/constants';
 import { getErrorMessage } from '../utils/errors';
 import { AuthContext } from './AuthContext';
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
+    clearFetchCache();
     setUser(null);
   }, []);
 
@@ -64,6 +66,7 @@ export function AuthProvider({ children }) {
 
   const startSession = useCallback(({ token, user: loggedInUser }) => {
     localStorage.setItem(TOKEN_KEY, token);
+    clearFetchCache();
     setUser(loggedInUser);
     setRestoreError('');
     return loggedInUser;

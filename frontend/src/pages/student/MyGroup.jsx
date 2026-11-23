@@ -54,7 +54,7 @@ function CreateGroupCard({ onCreated }) {
 
 export function MyGroup() {
   const { user } = useAuth();
-  const { data: group, loading, error, reload } = useFetch(getMyGroup);
+  const { data: group, loading, error, reload } = useFetch(getMyGroup, 'my-group');
 
   const [addingId, setAddingId] = useState(null);
   const [removingId, setRemovingId] = useState(null);

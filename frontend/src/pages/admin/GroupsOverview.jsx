@@ -15,7 +15,7 @@ const loadGroups = async () => {
 };
 
 export function GroupsOverview() {
-  const { data: groups, loading, error, reload } = useFetch(loadGroups);
+  const { data: groups, loading, error, reload } = useFetch(loadGroups, 'admin-groups');
 
   const header = <PageHeader title="Groups" description="Every group, its members and completion rate." />;
 

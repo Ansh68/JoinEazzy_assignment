@@ -22,7 +22,7 @@ const getAudience = ({ targetType, targets }) =>
   targetType === 'all' ? 'All students' : `${targets.length} ${targets.length === 1 ? 'group' : 'groups'}`;
 
 export function ManageAssignments() {
-  const { data: assignments, loading, error, reload } = useFetch(loadAssignments);
+  const { data: assignments, loading, error, reload } = useFetch(loadAssignments, 'admin-assignments');
   const [toDelete, setToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 

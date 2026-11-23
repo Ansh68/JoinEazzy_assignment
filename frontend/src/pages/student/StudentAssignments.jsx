@@ -23,7 +23,7 @@ const loadAssignmentsPage = async () => {
 };
 
 export function StudentAssignments() {
-  const { data, loading, error, reload } = useFetch(loadAssignmentsPage);
+  const { data, loading, error, reload } = useFetch(loadAssignmentsPage, 'student-assignments');
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState(null);
 

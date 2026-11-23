@@ -12,7 +12,7 @@ const loadAnalytics = async () => {
 };
 
 export function Analytics() {
-  const { data, loading, error, reload } = useFetch(loadAnalytics);
+  const { data, loading, error, reload } = useFetch(loadAnalytics, 'admin-analytics');
 
   const header = <PageHeader title="Analytics" description="Submission completion and group performance." />;
 
