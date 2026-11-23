@@ -16,7 +16,8 @@ A role-based web app where **students** register, form a group, add members, see
 
 | Topic | Decision | Why |
 |---|---|---|
-| Database | Supabase used **as a hosted PostgreSQL database only**, accessed from Express via `pg` (node-postgres) with the Supabase connection string | Matches the brief's "PostgreSQL" requirement, keeps all business logic in Express, and works with any Postgres connection string |
+| Database | Supabase (PostgreSQL) accessed from Express via the **`@supabase/supabase-js` client** with the service role key (query builder, no raw SQL in app code). RLS is enabled on every table with no policies, so only our API can reach the data | Modern, readable queries; the key stays server-side. The schema itself is a one-time `database/schema.sql` run in the Supabase SQL Editor (supabase-js can't run DDL) |
+| Multi-step writes | supabase-js has no transactions, so multi-step writes (create group + leader, assignment + targets) insert in order and delete the parent row if a later step fails | Keeps the code simple; a Postgres function (`rpc`) is the upgrade path if atomicity is ever needed |
 | Auth | **Custom JWT** issued by Express (`jsonwebtoken` + `bcryptjs`), *not* Supabase Auth | Brief asks for JWT-based role auth; we control the payload `{ id, role }` |
 | Token transport | `Authorization: Bearer <token>`, token kept in `localStorage`, 1-day expiry | Works across separate frontend/backend domains (Vercel + Render) without cookie/CORS pain; trade-off documented in README |
 | Roles | `student` and `admin`. Public signup creates **students only**; admins are created by a seed script | Nobody can self-register as a professor |
@@ -41,12 +42,7 @@ joineazy_ass/
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── env.js              # loads & validates env vars
-│   │   │   └── db.js               # pg Pool → Supabase
-│   │   ├── db/
-│   │   │   ├── migrations/
-│   │   │   │   └── 001_init.sql    # tables, enums, constraints, indexes
-│   │   │   ├── migrate.js          # runs SQL files in order
-│   │   │   └── seed.js             # admin + demo students/groups/assignments
+│   │   │   └── supabase.js         # supabase-js client (service role)
 │   │   ├── middleware/
 │   │   │   ├── authenticate.js     # verifies JWT → req.user
 │   │   │   ├── authorize.js        # authorize('admin') / authorize('student')
@@ -66,7 +62,7 @@ joineazy_ass/
 │   │   │   ├── assignment.controller.js
 │   │   │   ├── submission.controller.js
 │   │   │   └── analytics.controller.js
-│   │   ├── models/                 # all SQL lives here, one file per table/entity
+│   │   ├── models/                 # all database access (supabase-js queries), one file per entity
 │   │   │   ├── user.model.js
 │   │   │   ├── group.model.js
 │   │   │   ├── assignment.model.js
@@ -251,17 +247,17 @@ Time available: ~38 hours. Budget below leaves a buffer for deployment and the d
 
 ### Phase 0 — Project setup (≈1.5 h)
 - [ ] `git init`, root `.gitignore`, `README.md` stub, push to GitHub
-- [ ] Backend: `npm init`, install `express cors helmet morgan dotenv pg bcryptjs jsonwebtoken zod`, dev: `nodemon`
+- [ ] Backend: `npm init`, install `express cors helmet morgan dotenv @supabase/supabase-js bcrypt jsonwebtoken zod express-rate-limit`, dev: `nodemon`
 - [ ] Frontend: `npm create vite@latest` (React), install Tailwind, `react-router-dom axios recharts react-hot-toast`
-- [ ] Create Supabase project, copy connection string (use the **pooler / session** URL) into `backend/.env`
+- [ ] Create Supabase project, copy the Project URL and `service_role` key (Project Settings → API) into `backend/.env`
 - [ ] `.env.example` files for both sides
 - **Commit:** `chore: scaffold frontend and backend`
 
 ### Phase 1 — Backend foundation (≈2 h)
-- [ ] `config/env.js`, `config/db.js` (pg Pool with SSL for Supabase)
+- [ ] `config/env.js`, `config/supabase.js` (supabase-js client), `utils/unwrap.js`
 - [ ] `app.js` / `server.js`, `/api/health` route
 - [ ] `ApiError`, `asyncHandler`, `errorHandler`, `notFound`, `validate` middleware
-- [ ] `001_init.sql` migration + `migrate.js`; run against Supabase
+- [ ] `database/schema.sql`; run it once in the Supabase SQL Editor
 - **Commit:** `feat(backend): express setup, db connection and schema`
 
 ### Phase 2 — Authentication & RBAC (≈2.5 h)
@@ -273,14 +269,14 @@ Time available: ~38 hours. Budget below leaves a buffer for deployment and the d
 - **Commit:** `feat(auth): jwt auth with student/admin roles`
 
 ### Phase 3 — Groups module (≈2.5 h)
-- [ ] Create group (in a transaction: insert group + leader membership)
+- [ ] Create group (insert group, then leader membership; delete the group if the second step fails)
 - [ ] Get my group, add member by email/ID, remove member, leave group
 - [ ] Rules: one group per student, only leader manages members, can't add admins
 - [ ] Admin: list all groups with members
 - **Commit:** `feat(groups): group creation and member management`
 
 ### Phase 4 — Assignments module (≈2.5 h)
-- [ ] CRUD for admins with targeting (`all` / selected groups, transactional insert of targets)
+- [ ] CRUD for admins with targeting (`all` / selected groups, insert targets with rollback-by-delete on failure)
 - [ ] Student list query: visible assignments + own group's submission status
 - [ ] Validate OneDrive link is a valid URL, due date in future on create
 - **Commit:** `feat(assignments): crud with group targeting`
@@ -322,7 +318,7 @@ Time available: ~38 hours. Budget below leaves a buffer for deployment and the d
 
 ### Phase 10 — Deployment (≈1.5 h)
 - [ ] Add `start` script to backend (`node src/server.js`) and `frontend/vercel.json` SPA rewrite
-- [ ] Deploy backend to Render (env: `DATABASE_URL`, `JWT_SECRET`, `CLIENT_URL`)
+- [ ] Deploy backend to Render (env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `CLIENT_URL`)
 - [ ] Deploy frontend to Vercel (root dir `frontend`, env `VITE_API_URL`)
 - [ ] Run seed on production DB; smoke-test both roles live
 - **Commit:** `chore: deployment config for vercel and render`
@@ -364,7 +360,8 @@ Time available: ~38 hours. Budget below leaves a buffer for deployment and the d
 **backend/.env**
 ```
 PORT=5000
-DATABASE_URL=postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<service role key, server-only>   # never in the frontend
 JWT_SECRET=<long random string>
 JWT_EXPIRES_IN=1d
 CLIENT_URL=http://localhost:5173

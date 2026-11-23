@@ -9,11 +9,12 @@ const SALT_ROUNDS = 10;
 export const register = asyncHandler(async (req, res) => {
   const { name, email, studentId, password } = req.body;
 
-  const existing = await User.findByEmailOrStudentId({ email, studentId });
-  if (existing) {
-    const field = existing.email === email ? 'Email' : 'Student ID';
-    throw ApiError.conflict(`${field} is already registered`);
-  }
+  const [emailOwner, studentIdOwner] = await Promise.all([
+    User.findByEmail(email),
+    User.findByStudentId(studentId),
+  ]);
+  if (emailOwner) throw ApiError.conflict('Email is already registered');
+  if (studentIdOwner) throw ApiError.conflict('Student ID is already registered');
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
   const user = await User.createStudent({ name, email, studentId, passwordHash });

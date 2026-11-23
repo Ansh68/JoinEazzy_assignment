@@ -1,35 +1,33 @@
-import { query } from '../config/db.js';
+import { supabase } from '../config/supabase.js';
+import { unwrap } from '../utils/unwrap.js';
 
-const PUBLIC_COLUMNS = 'id, name, email, student_id AS "studentId", role, created_at AS "createdAt"';
+// "alias:column" renames snake_case columns to camelCase in the response.
+const PUBLIC_COLUMNS = 'id, name, email, studentId:student_id, role, createdAt:created_at';
 
-export const findById = async (id) => {
-  const { rows } = await query(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE id = $1`, [id]);
-  return rows[0];
-};
+export const findById = async (id) =>
+  unwrap(await supabase.from('users').select(PUBLIC_COLUMNS).eq('id', id).maybeSingle());
+
+export const findByEmail = async (email) =>
+  unwrap(await supabase.from('users').select('id').eq('email', email).maybeSingle());
+
+export const findByStudentId = async (studentId) =>
+  unwrap(await supabase.from('users').select('id').eq('student_id', studentId).maybeSingle());
 
 // Includes the password hash, so only use it for login.
-export const findByEmailWithPassword = async (email) => {
-  const { rows } = await query(
-    `SELECT ${PUBLIC_COLUMNS}, password_hash AS "passwordHash" FROM users WHERE email = $1`,
-    [email],
+export const findByEmailWithPassword = async (email) =>
+  unwrap(
+    await supabase
+      .from('users')
+      .select(`${PUBLIC_COLUMNS}, passwordHash:password_hash`)
+      .eq('email', email)
+      .maybeSingle(),
   );
-  return rows[0];
-};
 
-export const findByEmailOrStudentId = async ({ email, studentId }) => {
-  const { rows } = await query(
-    'SELECT email, student_id AS "studentId" FROM users WHERE email = $1 OR student_id = $2',
-    [email, studentId],
+export const createStudent = async ({ name, email, studentId, passwordHash }) =>
+  unwrap(
+    await supabase
+      .from('users')
+      .insert({ name, email, student_id: studentId, password_hash: passwordHash, role: 'student' })
+      .select(PUBLIC_COLUMNS)
+      .single(),
   );
-  return rows[0];
-};
-
-export const createStudent = async ({ name, email, studentId, passwordHash }) => {
-  const { rows } = await query(
-    `INSERT INTO users (name, email, student_id, password_hash, role)
-     VALUES ($1, $2, $3, $4, 'student')
-     RETURNING ${PUBLIC_COLUMNS}`,
-    [name, email, studentId, passwordHash],
-  );
-  return rows[0];
-};

@@ -1,4 +1,5 @@
--- Student, Group & Assignment Management schema
+-- Student, Group & Assignment Management schema.
+-- Run once: Supabase dashboard > SQL Editor > New query > paste this file > Run.
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 DO $$ BEGIN
@@ -69,3 +70,12 @@ CREATE TABLE IF NOT EXISTS submissions (
 CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_targets_group ON assignment_targets(group_id);
+
+-- The API uses the service role key (bypasses RLS). Enabling RLS with no policies
+-- blocks any direct access to these tables through Supabase's public anon key.
+ALTER TABLE users              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE groups             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_members      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assignments        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assignment_targets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE submissions        ENABLE ROW LEVEL SECURITY;
