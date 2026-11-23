@@ -7,4 +7,5 @@ export { Icon } from './icons';
 export { Input } from './Input';
 export { Modal } from './Modal';
 export { ProgressBar } from './ProgressBar';
+export { Textarea } from './Textarea';
 export { PageLoader, Spinner } from './Spinner';

@@ -1,5 +1,8 @@
 import { api } from './client';
 
+// Admin: every group with its members.
+export const getAllGroups = async () => (await api.get('/groups')).data.groups;
+
 // Returns the student's group with its members, or null if they have none.
 export const getMyGroup = async () => (await api.get('/groups/me')).data.group;
 

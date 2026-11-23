@@ -13,6 +13,33 @@ export const validateLogin = ({ email, password }) => {
   return errors;
 };
 
+const isHttpUrl = (value) => {
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+};
+
+// New assignments can't be due in the past; editing may keep an old due date.
+export const validateAssignment = ({ title, description, dueDate, onedriveLink, targetType, groupIds }, { isEdit = false } = {}) => {
+  const errors = {};
+
+  if (title.trim().length < 3) errors.title = 'Title must be at least 3 characters';
+  else if (title.trim().length > 120) errors.title = 'Title is too long (max 120 characters)';
+
+  if (description.trim().length > 2000) errors.description = 'Description is too long (max 2000 characters)';
+
+  if (!dueDate || Number.isNaN(new Date(dueDate).getTime())) errors.dueDate = 'Choose a due date and time';
+  else if (!isEdit && new Date(dueDate) <= new Date()) errors.dueDate = 'Due date must be in the future';
+
+  if (!isHttpUrl(onedriveLink.trim())) errors.onedriveLink = 'Enter a valid OneDrive link (https://...)';
+
+  if (targetType === 'groups' && groupIds.length === 0) errors.groupIds = 'Select at least one group';
+
+  return errors;
+};
+
 const GROUP_NAME_PATTERN = /^[\p{L}\p{N} _.&'-]+$/u;
 
 export const validateGroupName = ({ name }) => {
