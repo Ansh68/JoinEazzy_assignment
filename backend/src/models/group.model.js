@@ -32,7 +32,11 @@ export const findAll = async () => {
   return groups.map(toGroup);
 };
 
-export const findByName = async (name) =>
+// Returns just { id, name } for the groups that exist, used to validate assignment targets.
+export const findByIds = async (ids) =>
+  unwrap(await supabase.from('groups').select('id, name').in('id', ids));
+
+export const findByName =async (name) =>
   unwrap(await supabase.from('groups').select('id').ilike('name', name).maybeSingle());
 
 // Returns the group the user belongs to (with members), or null.
