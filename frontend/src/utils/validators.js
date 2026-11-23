@@ -13,7 +13,21 @@ export const validateLogin = ({ email, password }) => {
   return errors;
 };
 
-export const validateRegister = ({ name, email, studentId, password, confirmPassword }) => {
+const GROUP_NAME_PATTERN = /^[\p{L}\p{N} _.&'-]+$/u;
+
+export const validateGroupName = ({ name }) => {
+  const trimmed = name.trim();
+
+  if (trimmed.length < 3) return { name: 'Group name must be at least 3 characters' };
+  if (trimmed.length > 40) return { name: 'Group name is too long (max 40 characters)' };
+  if (!GROUP_NAME_PATTERN.test(trimmed)) {
+    return { name: "Use only letters, numbers, spaces and . _ - & '" };
+  }
+
+  return {};
+};
+
+export const validateRegister =({ name, email, studentId, password, confirmPassword }) => {
   const errors = {};
 
   if (name.trim().length < 2) errors.name = 'Name must be at least 2 characters';
