@@ -6,7 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "seed": "node database/seed.js"
+    "seed": "node database/seed.js",
+    "migrate": "node-pg-migrate up --envPath .env -m database/migrations",
+    "migrate:down": "node-pg-migrate down --envPath .env -m database/migrations",
+    "migrate:create": "node-pg-migrate create --envPath .env -m database/migrations -j js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +29,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "node-pg-migrate": "^9.0.0",
+    "nodemon": "^3.1.14",
+    "pg": "^8.23.1"
   }
 }
