@@ -320,10 +320,12 @@ Time available: ~38 hours. Budget below leaves a buffer for deployment and the d
 - **Commit:** `chore: ui polish and security hardening`
 
 ### Phase 10 — Deployment (≈1.5 h)
-- [ ] Add `start` script to backend (`node src/server.js`) and `frontend/vercel.json` SPA rewrite
-- [ ] Deploy backend to Render (env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `CLIENT_URL`)
-- [ ] Deploy frontend to Vercel (root dir `frontend`, env `VITE_API_URL`)
-- [ ] Run seed on production DB; smoke-test both roles live
+- [x] Backend `start` script, `engines`, production guards (JWT secret length, `CLIENT_URL` required), `render.yaml` blueprint
+- [x] `frontend/vercel.json` (SPA rewrite, cache and security headers) and `.env.example` files
+- [x] Step-by-step guide: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- [ ] Deploy backend to Render (env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `CLIENT_URL`), done by the owner
+- [ ] Deploy frontend to Vercel (root dir `frontend`, env `VITE_API_URL`), done by the owner
+- [ ] Smoke-test both roles on the live URLs (the Supabase database is shared, so no production seed is needed)
 - **Commit:** `chore: deployment config for vercel and render`
 
 ### Phase 11 — Documentation & submission (≈2 h)
