@@ -6,9 +6,8 @@ Built for the Joineazy Full Stack Intern technical task (Task 1).
 
 | | |
 |---|---|
-| **Live app** | _add the Vercel URL here_ |
-| **Backend API** | _add the Render URL here_ (`/api/health` should return `{"success":true,"status":"ok"}`) |
-| **Demo video** | _add the video link here_ |
+| **Live app** | https://join-eazzy-assignment.vercel.app |
+| **Backend API** |  https://joineazzy-assignment.onrender.com |
 
 ---
 
