@@ -11,9 +11,15 @@ export const errorHandler = (err, _req, res, _next) => {
 
   if (status >= 500) console.error(err);
 
+  // Raw Postgres messages leak table/constraint names, so show a friendly one instead.
+  const message =
+    err.code === '23505' ? 'This record already exists'
+    : status >= 500 && env.isProd ? 'Internal server error'
+    : err.message;
+
   res.status(status).json({
     success: false,
-    message: status >= 500 && env.isProd ? 'Internal server error' : err.message,
+    message,
     ...(err.errors && { errors: err.errors }),
   });
 };

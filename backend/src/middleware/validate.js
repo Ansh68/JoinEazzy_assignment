@@ -13,6 +13,12 @@ export const validate = (schema, source = 'body') => (req, _res, next) => {
     return next(ApiError.badRequest('Validation failed', errors));
   }
 
-  req[source] = result.data;
+  // Express 5 exposes req.query as a read-only getter, so redefine the property instead.
+  Object.defineProperty(req, source, {
+    value: result.data,
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
   next();
 };
