@@ -7,12 +7,23 @@ if (missing.length > 0) {
   throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
 }
 
+const isProd = process.env.NODE_ENV === 'production';
+
+if (isProd && process.env.JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be at least 32 characters long in production');
+}
+
 export const env = {
   port: Number(process.env.PORT) || 5000,
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
-  isProd: process.env.NODE_ENV === 'production',
+  // Comma-separated list, e.g. "https://app.vercel.app,http://localhost:5173".
+  clientUrls: (process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean),
+  groupMaxSize: Number(process.env.GROUP_MAX_SIZE) || 10,
+  isProd,
 };

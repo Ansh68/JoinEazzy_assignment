@@ -1,7 +1,9 @@
+import { env } from '../config/env.js';
 import * as Group from '../models/group.model.js';
 import * as User from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { throwConflictOnDuplicate } from '../utils/duplicate.js';
 
 // Loads a group and makes sure the logged-in student is its leader.
 const getGroupAsLeader = async (groupId, userId) => {
@@ -24,8 +26,12 @@ export const createGroup = asyncHandler(async (req, res) => {
     throw ApiError.conflict('A group with this name already exists');
   }
 
-  const group = await Group.create({ name, createdBy: req.user.id });
-  res.status(201).json({ success: true, group });
+  try {
+    const group = await Group.create({ name, createdBy: req.user.id });
+    res.status(201).json({ success: true, group });
+  } catch (error) {
+    throwConflictOnDuplicate(error, 'This group name is taken, or you are already in a group');
+  }
 });
 
 // Returns { group: null } when the student hasn't joined a group yet.
@@ -42,14 +48,24 @@ export const listGroups = asyncHandler(async (_req, res) => {
 export const addMember = asyncHandler(async (req, res) => {
   const group = await getGroupAsLeader(req.params.id, req.user.id);
 
+  if (group.members.length >= env.groupMaxSize) {
+    throw ApiError.conflict(`This group is full (maximum ${env.groupMaxSize} members)`);
+  }
+
   const student = await User.findStudentByIdentifier(req.body.identifier);
   if (!student) throw ApiError.notFound('No student found with that email or student ID');
 
-  if (await Group.findByMemberId(student.id)) {
-    throw ApiError.conflict(`${student.name} is already in a group`);
+  const currentGroup = await Group.findByMemberId(student.id);
+  if (currentGroup?.id === group.id) throw ApiError.conflict(`${student.name} is already in your group`);
+  if (currentGroup) throw ApiError.conflict(`${student.name} is already in another group`);
+
+  try {
+    await Group.addMember({ groupId: group.id, userId: student.id });
+  } catch (error) {
+    // Another leader added the same student a split second earlier.
+    throwConflictOnDuplicate(error, `${student.name} is already in a group`);
   }
 
-  await Group.addMember({ groupId: group.id, userId: student.id });
   res.status(201).json({ success: true, group: await Group.findById(group.id) });
 });
 

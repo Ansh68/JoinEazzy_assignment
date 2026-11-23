@@ -3,7 +3,8 @@ import { ApiError } from '../utils/ApiError.js';
 // Usage: validate(schema) or validate(schema, 'query' | 'params').
 // Replaces the request data with the parsed (cleaned) result.
 export const validate = (schema, source = 'body') => (req, _res, next) => {
-  const result = schema.safeParse(req[source]);
+  // req.body is undefined when a request has no body or the wrong Content-Type.
+  const result = schema.safeParse(req[source] ?? {});
 
   if (!result.success) {
     const errors = result.error.issues.map(({ path, message }) => ({

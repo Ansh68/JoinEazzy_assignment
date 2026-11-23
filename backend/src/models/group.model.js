@@ -36,8 +36,15 @@ export const findAll = async () => {
 export const findByIds = async (ids) =>
   unwrap(await supabase.from('groups').select('id, name').in('id', ids));
 
-export const findByName =async (name) =>
-  unwrap(await supabase.from('groups').select('id').ilike('name', name).maybeSingle());
+// Case-insensitive exact match. LIKE wildcards in the name are escaped so "a_b" can't match "axb".
+export const findByName = async (name) =>
+  unwrap(
+    await supabase
+      .from('groups')
+      .select('id')
+      .ilike('name', name.replace(/[\\%_]/g, '\\$&'))
+      .maybeSingle(),
+  );
 
 // Returns the group the user belongs to (with members), or null.
 export const findByMemberId = async (userId) => {

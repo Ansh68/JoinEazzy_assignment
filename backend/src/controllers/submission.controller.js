@@ -4,9 +4,8 @@ import * as Submission from '../models/submission.model.js';
 import * as User from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { throwConflictOnDuplicate } from '../utils/duplicate.js';
 import { getStatus, getTargetedGroupIds, isVisibleToGroup, toPercent } from '../utils/progress.js';
-
-const UNIQUE_VIOLATION = '23505';
 
 // A student confirms on behalf of their whole group. One confirmation per group per assignment.
 export const confirmSubmission = asyncHandler(async (req, res) => {
@@ -20,15 +19,15 @@ export const confirmSubmission = asyncHandler(async (req, res) => {
     throw ApiError.notFound('Assignment not found');
   }
 
-  const alreadyConfirmed = () => ApiError.conflict('Your group has already confirmed this assignment');
-  if (await Submission.findOne({ assignmentId, groupId: group.id })) throw alreadyConfirmed();
+  const alreadyConfirmed = 'Your group has already confirmed this assignment';
+  if (await Submission.findOne({ assignmentId, groupId: group.id })) throw ApiError.conflict(alreadyConfirmed);
 
   try {
     const submission = await Submission.create({ assignmentId, groupId: group.id, confirmedBy: req.user.id });
     res.status(201).json({ success: true, submission, status: 'submitted' });
   } catch (error) {
     // Two members confirming at the same moment: the database constraint lets only one through.
-    throw error.code === UNIQUE_VIOLATION ? alreadyConfirmed() : error;
+    throwConflictOnDuplicate(error, alreadyConfirmed);
   }
 });
 

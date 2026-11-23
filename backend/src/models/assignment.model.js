@@ -64,8 +64,14 @@ export const create = async ({ groupIds, createdBy, ...fields }) => {
   return findById(id);
 };
 
-// Targets are replaced as a whole: clear the old ones, then insert the new ones.
+// Targets are updated by difference: new groups are added first and removed groups deleted last,
+// so a failure part-way never leaves an assignment with its targets wiped out.
 export const update = async (id, { groupIds, ...fields }) => {
+  const existing = unwrap(await supabase.from('assignment_targets').select('group_id').eq('assignment_id', id));
+  const existingIds = existing.map(({ group_id }) => group_id);
+
+  await addTargets(id, groupIds.filter((groupId) => !existingIds.includes(groupId)));
+
   unwrap(
     await supabase
       .from('assignments')
@@ -73,8 +79,12 @@ export const update = async (id, { groupIds, ...fields }) => {
       .eq('id', id),
   );
 
-  unwrap(await supabase.from('assignment_targets').delete().eq('assignment_id', id));
-  await addTargets(id, groupIds);
+  const removedIds = existingIds.filter((groupId) => !groupIds.includes(groupId));
+  if (removedIds.length > 0) {
+    unwrap(
+      await supabase.from('assignment_targets').delete().eq('assignment_id', id).in('group_id', removedIds),
+    );
+  }
 
   return findById(id);
 };

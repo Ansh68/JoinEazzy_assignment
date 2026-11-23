@@ -1,13 +1,26 @@
 import { z } from 'zod';
 
+const MAX_GROUP_TARGETS = 100;
+const MAX_DUE_DATE_YEARS_AHEAD = 5;
+
+const isTooFarAhead = (date) => {
+  const limit = new Date();
+  limit.setFullYear(limit.getFullYear() + MAX_DUE_DATE_YEARS_AHEAD);
+  return new Date(date) > limit;
+};
+
 const assignmentFields = z
   .object({
     title: z.string().trim().min(3, 'Title must be at least 3 characters').max(120, 'Title is too long'),
     description: z.string().trim().max(2000, 'Description is too long').default(''),
     dueDate: z.iso.datetime({ offset: true, error: 'Enter a valid due date' }),
-    onedriveLink: z.httpUrl('Enter a valid OneDrive link (https://...)'),
-    targetType: z.enum(['all', 'groups']).default('all'),
-    groupIds: z.array(z.uuid()).default([]),
+    onedriveLink: z.httpUrl('Enter a valid OneDrive link (https://...)').max(2048, 'Link is too long'),
+    targetType: z.enum(['all', 'groups'], { error: 'Target must be "all" or "groups"' }).default('all'),
+    groupIds: z.array(z.uuid('Invalid group id')).max(MAX_GROUP_TARGETS, 'Too many groups selected').default([]),
+  })
+  .refine((data) => !isTooFarAhead(data.dueDate), {
+    path: ['dueDate'],
+    message: `Due date can be at most ${MAX_DUE_DATE_YEARS_AHEAD} years ahead`,
   })
   .refine((data) => data.targetType === 'all' || data.groupIds.length > 0, {
     path: ['groupIds'],
