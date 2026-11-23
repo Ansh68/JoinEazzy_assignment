@@ -18,7 +18,7 @@ A role-based web app where **students** register, form a group, add members, see
 |---|---|---|
 | Database | Supabase (PostgreSQL) accessed from Express via the **`@supabase/supabase-js` client** with the service role key (query builder, no raw SQL in app code). RLS is enabled on every table with no policies, so only our API can reach the data | Modern, readable queries; the key stays server-side. The schema itself is a one-time `database/schema.sql` run in the Supabase SQL Editor (supabase-js can't run DDL) |
 | Multi-step writes | supabase-js has no transactions, so multi-step writes (create group + leader, assignment + targets) insert in order and delete the parent row if a later step fails | Keeps the code simple; a Postgres function (`rpc`) is the upgrade path if atomicity is ever needed |
-| Auth | **Custom JWT** issued by Express (`jsonwebtoken` + `bcryptjs`), *not* Supabase Auth | Brief asks for JWT-based role auth; we control the payload `{ id, role }` |
+| Auth | **Custom JWT** issued by Express (`jsonwebtoken` + `bcrypt`), *not* Supabase Auth | Brief asks for JWT-based role auth; we control the payload `{ id, role }` |
 | Token transport | `Authorization: Bearer <token>`, token kept in `localStorage`, 1-day expiry | Works across separate frontend/backend domains (Vercel + Render) without cookie/CORS pain; trade-off documented in README |
 | Roles | `student` and `admin`. Public signup creates **students only**; admins are created by a seed script | Nobody can self-register as a professor |
 | Groups | A student belongs to **at most one group** (enforced by a unique constraint). Creator becomes group `leader` | Keeps progress tracking unambiguous |
@@ -74,6 +74,9 @@ joineazy_ass/
 │   │   │   └── jwt.js
 │   │   ├── app.js                  # express app (cors, helmet, json, routes, errors)
 │   │   └── server.js               # starts the server
+│   ├── database/
+│   │   ├── schema.sql              # run once in Supabase SQL Editor: tables, enums, constraints, RLS
+│   │   └── seed.js                 # admin + demo data (npm run seed)
 │   ├── .env.example
 │   └── package.json
 │
