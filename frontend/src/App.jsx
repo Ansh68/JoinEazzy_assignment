@@ -1,7 +1,12 @@
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthProvider';
+import { AppRoutes } from './routes/AppRoutes';
+
 export default function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <h1 className="text-2xl font-semibold text-brand-600">Joineazy Assignment Manager</h1>
-    </div>
-  )
+    <AuthProvider>
+      <AppRoutes />
+      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+    </AuthProvider>
+  );
 }
