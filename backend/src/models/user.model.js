@@ -23,6 +23,9 @@ export const findByEmailWithPassword = async (email) =>
       .maybeSingle(),
   );
 
+export const findAllStudents = async () =>
+  unwrap(await supabase.from('users').select(PUBLIC_COLUMNS).eq('role', 'student').order('name'));
+
 // Finds a student by email or student ID (admins are never returned).
 export const findStudentByIdentifier = async (identifier) => {
   const column = identifier.includes('@') ? 'email' : 'student_id';

@@ -3,15 +3,7 @@ import * as Group from '../models/group.model.js';
 import * as Submission from '../models/submission.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-
-const isVisibleToGroup = (assignment, groupId) =>
-  assignment.targetType === 'all' || assignment.targets.some((group) => group.id === groupId);
-
-// submitted → the group has confirmed; overdue → past the due date and not confirmed.
-const getStatus = (assignment, submission) => {
-  if (submission) return 'submitted';
-  return new Date(assignment.dueDate) < new Date() ? 'overdue' : 'pending';
-};
+import { getStatus, isVisibleToGroup } from '../utils/progress.js';
 
 // Students only need their own group's progress, not who else the assignment targets.
 const toStudentView = ({ targets, ...assignment }, submission) => ({
