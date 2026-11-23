@@ -53,7 +53,7 @@ export const searchStudentsWithoutGroup = async (search) => {
     request = request.or(`name.ilike.%${search}%,email.ilike.%${search}%,student_id.ilike.%${search}%`);
   }
 
-  return unwrap(await request.order('name').limit(20));
+  return unwrap(await request.order('name').limit(20))    ;
 };
 
 export const createStudent =async ({ name, email, studentId, passwordHash }) =>
