@@ -56,7 +56,7 @@ export const searchStudentsWithoutGroup = async (search) => {
   return unwrap(await request.order('name').limit(20))    ;
 };
 
-export const createStudent =async ({ name, email, studentId, passwordHash }) =>
+export const createStudent = async ({ name, email, studentId, passwordHash }) =>
   unwrap(
     await supabase
       .from('users')

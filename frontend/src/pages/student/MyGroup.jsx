@@ -132,7 +132,7 @@ export function MyGroup() {
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="min-w-0">
           <h2 className="mb-1 text-base font-semibold text-slate-900">Members</h2>
           <MemberList
             members={group.members}
@@ -144,11 +144,11 @@ export function MyGroup() {
         </Card>
 
         {isLeader ? (
-          <Card>
+          <Card className="min-w-0">
             <AddMemberPanel onAdd={handleAdd} addingId={addingId} refreshKey={refreshKey} />
           </Card>
         ) : (
-          <Card>
+          <Card className="min-w-0">
             <h2 className="text-base font-semibold text-slate-900">Adding members</h2>
             <p className="mt-1 text-sm text-slate-500">Only the group leader can add or remove members.</p>
           </Card>

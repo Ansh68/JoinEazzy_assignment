@@ -1,5 +1,9 @@
+import { usePageTitle } from '../../hooks/usePageTitle';
+
 // Centred card used by the login and register pages.
 export function AuthLayout({ title, subtitle, children, footer }) {
+  usePageTitle(title);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-brand-50 via-white to-slate-100 px-4 py-10">
       <div className="w-full max-w-md">

@@ -3,7 +3,8 @@ import { TOKEN_KEY, UNAUTHORIZED_EVENT } from '../utils/constants';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api',
-  timeout: 15000,
+  // Generous because free hosting can take ~50s to wake an idle server.
+  timeout: 45000,
 });
 
 // Send the saved JWT with every request.

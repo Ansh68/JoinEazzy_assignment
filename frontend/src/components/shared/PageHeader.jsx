@@ -1,4 +1,9 @@
+import { usePageTitle } from '../../hooks/usePageTitle';
+
+// Heading at the top of every logged-in page. Also keeps the browser tab title in sync.
 export function PageHeader({ title, description, action }) {
+  usePageTitle(title);
+
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
